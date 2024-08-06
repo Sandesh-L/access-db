@@ -1,9 +1,10 @@
 from ..models import *
-from models.software import Software
-from models.rps import RPS
-from models.rpSoftware import RPSoftware
+from ..models.software import Software
+from ..models.rps import RPS
+from ..models.rpSoftware import RPSoftware
+from ..parseSpiderOutput import parse_spider_output
 import pandas as pd
-from ...parseSpiderOutput import parse_spider_output
+# from .parseSpiderOutput import parse_spider_output
 
 def get_software_from_name(software_name):
     pass
@@ -12,21 +13,23 @@ def get_software_from_name(software_name):
 
 def create_rp_software_records(parsed_spider_output):
     
-    rps = parse_spider_output.key()
+    rp_software_records = []
 
+    rps = parsed_spider_output.keys()
     for rp in rps:
-        software, versions = parse_spider_output[rp]
-        
 
+        rp_id = RPS.get(RPS.rp_name == rp)
 
-    # {rp: [(softare, version), (software, version), (software, version)]}
-    #
-    # {rp_id:rp_id, software_id:software_id, version:version}
+        for software, versions in parsed_spider_output[rp]:
+            print(f"adding software: {software}")
+            software_id = Software.get(Software.software_name == software)
+            rp_software_records.append({
+                "rp_id": rp_id,
+                "software_id": software_id,
+                "software_versions": versions
+            })
 
-
-
-
-    pass    
+    return rp_software_records
 
 @db.connection_context()
 def create_rp_software_table():
@@ -35,7 +38,7 @@ def create_rp_software_table():
 
 @db.connection_context()
 def update_rp_software_table(rp_software_records):
-    pass
+    RPSoftware.insert_many(rp_software_records).execute()
 
 
 create_rp_software_table()

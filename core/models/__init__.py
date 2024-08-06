@@ -14,7 +14,13 @@ db = PooledPostgresqlExtDatabase(
         stale_timeout=300 # 5 min
     )
 
+class CaseInsensitiveField(CharField):
+    def db_value(self, value):
+        return value.lower() if value else None
+
+    def python_value(self, value):
+        return value
+
 class BaseExtModel(Model):
     class Meta:
         database=db
-

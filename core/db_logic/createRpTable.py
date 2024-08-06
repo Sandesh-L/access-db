@@ -1,5 +1,5 @@
-from models import db
-from models.rps import RPS
+from ..models import db
+from ..models.rps import RPS
 
 
 
