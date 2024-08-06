@@ -1,9 +1,4 @@
-env/
-.env
-postgres_db/
-db_logfile
-db_logic/__pycache___/
-models/__pycache___/
-core/__pycache___/
+__pycache__
 data
-__pycache___/
+env
+postgres_db
