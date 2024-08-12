@@ -3,4 +3,7 @@ data
 env
 .env
 postgres_db
+ai_sftw_text.txt
 db_logfile
+rp_sftw_text.txt
+softwaretable.py

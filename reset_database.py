@@ -5,10 +5,10 @@ from core.models.rps import RPS
 from core.models.aiSoftwareInfo import AISoftwareInfo
 from core.models.api import API
 from core.parseSpiderOutput import parse_spider_output
-from core.db_logic.createRpTable import update_rp_table, create_rp_table_records
-from core.db_logic.createSoftwareTable import update_software_table, create_software_table_records
-from core.db_logic.createRPSoftwareTable import update_rp_software_table, create_rp_software_table_records
-from core.db_logic.createAISoftwareTable import create_ai_software_table_records, update_ai_software_table
+from core.db_logic.updateRpTable import update_rp_table, create_rp_table_records
+from core.db_logic.updateSoftwareTable import update_software_table, create_software_table_records
+from core.db_logic.updateRPSoftwareTable import update_rp_software_table, create_rp_software_table_records
+from core.db_logic.updateAISoftwareTable import create_ai_software_table_records, update_ai_software_table
 
 
 @admin_db.connection_context()
