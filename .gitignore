@@ -1,4 +1,6 @@
 __pycache__
 data
 env
+.env
 postgres_db
+db_logfile

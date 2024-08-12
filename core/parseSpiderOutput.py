@@ -9,8 +9,7 @@ import re
 #############
 # module spider output will format softwares like so: "  softwarename"
 #       2 spaces followed by the name of the software
-# In case of nested software (bridges-2) it is formatted like so: "  AI: AI/package_version"
-
+# In case of nested software (bridges-2) it is formatted like so: "  AI: AI/packageName_version"
 ############
 
 
@@ -34,7 +33,7 @@ def get_software_lines(file_path):
     # Find lines with software info (they start with exactly two spaces)
     software_lines = [line.strip() for line in file_lines if re.match(r'^ {2}(?! )', line)] # .strip() to remove the leading two spaces
     
-    return software_lines 
+    return software_lines
 
 
 #################################################################################
@@ -50,31 +49,33 @@ def get_software_lines(file_path):
 #           versions. Key is the software name and values are the versions.     #
 #           Both key and vlaue are strings                                      #
 #################################################################################
-def get_software_name_and_versions(software_line):
+def get_software_name_and_versions(software_line, software_name_and_versions):
 
-    software_name_and_versions = {}
+    # software_name_and_versions = {}
 
     split_software_line = software_line.split(':',1)
     software_name = split_software_line[0].lower()
     software_versions = split_software_line[1].lower()
 
     # Kyric specific: separate the string at `-{0-9}` (a dash followed by a number)
+    # Kyric sometimes uses the "softwareName-version-compiler : softwareName-version-compiler" format 
+    # the '/ not in' is to avoid splitting software with the naming scheme like: genemarks-2
     pattern = r'-(?=\d)'    # regex pattern for a dash followed by a number
-    if re.search(pattern, software_name):
+    if re.search(pattern, software_name) and "/" not in software_versions:
         split_software_name = re.split(pattern, software_name)
         software_name = split_software_name[0]
     else:
         software_name = software_name
-    
+
     # software_name is found, double checking version
-    
+
     versions_list = software_versions.split(",")
     versions_str = ""
     for version in versions_list:
         # standard lmod version_info look like this: software/version
         # convert it to only get "version"
         version_info = version.split('/', 1)[-1]
-        # print(version_info)
+
         # check if software is nested (software name is in version info)
         # Bridges-2 specific: version data has `string_number` pattern
         pattern = r'(?<=[a-zA-Z])_(?=\d)'    # regex for string_number pattern
@@ -89,7 +90,7 @@ def get_software_name_and_versions(software_line):
                 software_name_and_versions[nested_software] = nested_version
 
             elif not nested_version in software_name_and_versions[nested_software]:
-                software_name_and_versions[nested_software] = software_name_and_versions[nested_software] + ", "+ nested_version
+                software_name_and_versions[nested_software] +=  f", {nested_version}"
         
         # Kyric specific: Kyric doesn't always follow the "software/version" format
         # it sometimes uses "software-version-compiler" format (string-int-string)
@@ -99,18 +100,18 @@ def get_software_name_and_versions(software_line):
             version_info = version_comp.split("-", 1)[0]    # now we have only the version
 
         if versions_str:    # comma separate if string is not empty
-            versions_str += ", " + version_info
+            versions_str += f", {version_info}"
         else:
             versions_str = version_info
 
 
     # add software name and versions
     # in case of nested softwares, we also want to keep the parent container as a software (for now)
-    if not software_name in software_name_and_versions:
+    if software_name not in software_name_and_versions:
         software_name_and_versions[software_name] = versions_str
 
-    elif not nested_version in software_name_and_versions[software_name]:
-        software_name_and_versions[software_name] = nested_software_and_version[software_name] + ", "+ versions_str
+    elif versions_str not in software_name_and_versions[software_name]:
+        software_name_and_versions[software_name] +=  f", {versions_str}"
     
     return software_name_and_versions
 
@@ -128,7 +129,7 @@ def get_software_name_and_versions(software_line):
 #       get_software_name_and_versions: Retruns software name and versions      #
 #    Return:                                                                    #
 #       rp_software_and_versions{Dict}: A dictinory with lowercase rp names as  #
-#           the keys. The value is a tuple of strings where the first index is  # 
+#           the keys. The value is a tuple of strings where the first index is  #
 #           the software name and second is the versions both lowercased        #
 #################################################################################
 def parse_spider_output(spider_output_dir="./data/spiderOutput"):
@@ -147,9 +148,11 @@ def parse_spider_output(spider_output_dir="./data/spiderOutput"):
 
         rp_software_and_versions[rp_name] = []
 
+        software_name_and_versions = {}
         for software_line in software_lines:
-            software_name_and_versions = get_software_name_and_versions(software_line)
+            new_software_name_and_versions = get_software_name_and_versions(software_line, software_name_and_versions)
+            software_name_and_versions.update(new_software_name_and_versions)
 
-            rp_software_and_versions[rp_name] += list(software_name_and_versions.items())
+        rp_software_and_versions[rp_name] += list(software_name_and_versions.items())
 
     return rp_software_and_versions
